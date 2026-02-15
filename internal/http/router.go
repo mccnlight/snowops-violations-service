@@ -27,7 +27,8 @@ func NewRouter(handler *Handler, authMiddleware gin.HandlerFunc, env string) *gi
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	protected := router.Group("/")
+	// Префикс /api/v1 как в snowops-anpr-service (аналитика/reports)
+	protected := router.Group("/api/v1")
 	protected.Use(authMiddleware)
 	{
 		protected.GET("/violations", handler.listViolations)

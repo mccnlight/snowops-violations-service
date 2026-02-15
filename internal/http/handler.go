@@ -52,7 +52,8 @@ func (h *Handler) listViolations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, successResponse(records))
+	// Формат как в аналитике (reports): data — объект с полем списка (events → items)
+	c.JSON(http.StatusOK, successResponse(gin.H{"items": records}))
 }
 
 func (h *Handler) getViolation(c *gin.Context) {
@@ -174,7 +175,8 @@ func (h *Handler) listAppeals(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, successResponse(appeals))
+	// Формат как в аналитике: data — объект с полем items
+	c.JSON(http.StatusOK, successResponse(gin.H{"items": appeals}))
 }
 
 func (h *Handler) getAppeal(c *gin.Context) {

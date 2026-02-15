@@ -30,80 +30,82 @@ All statements are idempotent for shared-schema usage.
 
 ## API surface
 
-All endpoints require `Authorization: Bearer <jwt>` issued by snowops-auth-service.
+All endpoints require `Authorization: Bearer <jwt>` issued by snowops-auth-service. Base path for protected endpoints: **`/api/v1`** (same as snowops-anpr-service analytics/reports).
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/violations` | List violations (filters: status/type/severity/detected_by/contractor/driver/ticket/area/date/search). Scope auto-applied. |
-| `GET` | `/violations/:id` | Detailed card (trip/ticket/context + full appeal history). |
-| `POST` | `/violations` | KGU/Akimat manual violation creation (body: `trip_id`, `type`, `detected_by`, `severity`, `description`). |
-| `PUT` | `/violations/:id/status` | KGU/Akimat mark as `FIXED` or `CANCELED`. |
-| `GET` | `/appeals` | List appeals (filters: status, reason_code, violation_type, contractor, date). Technical users auto-filtered to CAMERA_ERROR. |
-| `GET` | `/appeals/:id` | Appeal card with attachments/comments. |
-| `POST` | `/violations/:id/appeals` | Driver/contractor submit appeal (`reason_code`, `reason_text`, attachments). |
-| `POST` | `/appeals/:id/comments` | Participants add comment + attachments. Driver/contractor replies from `NEED_INFO` return status to `UNDER_REVIEW`. |
-| `POST` | `/appeals/:id/actions` | KGU/Akimat actions: `UNDER_REVIEW`, `NEED_INFO`, `APPROVE`, `REJECT`, `CLOSE`. Approve→violation CANCELED, Reject→violation FIXED. |
+| `GET` | `/api/v1/violations` | List violations (filters: status/type/severity/detected_by/contractor/driver/ticket/area/date/search). Scope auto-applied. Returns `{ "data": { "items": [...] } }`. |
+| `GET` | `/api/v1/violations/:id` | Detailed card (trip/ticket/context + full appeal history). |
+| `POST` | `/api/v1/violations` | KGU/Akimat manual violation creation (body: `trip_id`, `type`, `detected_by`, `severity`, `description`). |
+| `PUT` | `/api/v1/violations/:id/status` | KGU/Akimat mark as `FIXED` or `CANCELED`. |
+| `GET` | `/api/v1/appeals` | List appeals (filters: status, reason_code, violation_type, contractor, date). Technical users auto-filtered to CAMERA_ERROR. Returns `{ "data": { "items": [...] } }`. |
+| `GET` | `/api/v1/appeals/:id` | Appeal card with attachments/comments. |
+| `POST` | `/api/v1/violations/:id/appeals` | Driver/contractor submit appeal (`reason_code`, `reason_text`, attachments). |
+| `POST` | `/api/v1/appeals/:id/comments` | Participants add comment + attachments. Driver/contractor replies from `NEED_INFO` return status to `UNDER_REVIEW`. |
+| `POST` | `/api/v1/appeals/:id/actions` | KGU/Akimat actions: `UNDER_REVIEW`, `NEED_INFO`, `APPROVE`, `REJECT`, `CLOSE`. Approve→violation CANCELED, Reject→violation FIXED. |
 
-Responses follow `{ "data": ... }` envelope. Errors use `{ "error": "<message>" }`.
+Responses follow `{ "data": ... }` envelope (list endpoints use `{ "data": { "items": [...] } }`). Errors use `{ "error": "<message>" }`.
 
 ## Endpoint details
 
 ### Violations
 
-#### `GET /violations`
+#### `GET /api/v1/violations`
 
 Query parameters (all optional):  
 `status`, `type`, `severity`, `detected_by`, `contractor_id`, `driver_id`, `ticket_id`, `cleaning_area_id`, `date_from`, `date_to`, `search`, `limit`, `offset`.
 
 ```
-GET /violations?status=OPEN&detected_by=LPR&date_from=2025-01-01T00:00:00Z&limit=20
+GET /api/v1/violations?status=OPEN&detected_by=LPR&date_from=2025-01-01T00:00:00Z&limit=20
 Authorization: Bearer <jwt>
 ```
 
 ```json
 {
-  "data": [
-    {
-      "violation": {
-        "id": "b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02",
-        "trip_id": "a7ac4d08-6c93-46bb-9f38-5b88b29be8a4",
-        "type": "MISMATCH_PLATE",
-        "detected_by": "LPR",
-        "severity": "MEDIUM",
-        "status": "OPEN",
-        "description": "Auto violation: MISMATCH_PLATE",
-        "created_at": "2025-01-12T06:22:12Z",
-        "updated_at": "2025-01-12T06:22:12Z"
-      },
-      "trip_status": "MISMATCH_PLATE",
-      "trip_entry_at": "2025-01-12T06:21:10Z",
-      "trip_violation_reason": "Auto violation: MISMATCH_PLATE",
-      "contractor": { "id": "42e5…", "name": "Contractor LLP" },
-      "ticket": { "id": "7b39…", "status": "IN_PROGRESS" },
-      "driver": { "id": "84df…", "full_name": "Aidos Nur", "phone": "+77011234567" },
-      "vehicle": { "id": "9081…", "plate_number": "123ABC02" },
-      "polygon_name": "Polygon #12",
-      "has_active_appeal": false
-    }
-  ]
+  "data": {
+    "items": [
+      {
+        "violation": {
+          "id": "b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02",
+          "trip_id": "a7ac4d08-6c93-46bb-9f38-5b88b29be8a4",
+          "type": "MISMATCH_PLATE",
+          "detected_by": "LPR",
+          "severity": "MEDIUM",
+          "status": "OPEN",
+          "description": "Auto violation: MISMATCH_PLATE",
+          "created_at": "2025-01-12T06:22:12Z",
+          "updated_at": "2025-01-12T06:22:12Z"
+        },
+        "trip_status": "MISMATCH_PLATE",
+        "trip_entry_at": "2025-01-12T06:21:10Z",
+        "trip_violation_reason": "Auto violation: MISMATCH_PLATE",
+        "contractor": { "id": "42e5…", "name": "Contractor LLP" },
+        "ticket": { "id": "7b39…", "status": "IN_PROGRESS" },
+        "driver": { "id": "84df…", "full_name": "Aidos Nur", "phone": "+77011234567" },
+        "vehicle": { "id": "9081…", "plate_number": "123ABC02" },
+        "polygon_name": "Polygon #12",
+        "has_active_appeal": false
+      }
+    ]
+  }
 }
 ```
 
-#### `GET /violations/:id`
+#### `GET /api/v1/violations/:id`
 
 Returns a single `ViolationRecord` plus full appeal list.
 
 ```
-GET /violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02
+GET /api/v1/violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02
 Authorization: Bearer <jwt>
 ```
 
-#### `POST /violations`
+#### `POST /api/v1/violations`
 
 Available to Akimat/KGU. Payload must include an existing trip ID.
 
 ```
-POST /violations
+POST /api/v1/violations
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
@@ -127,10 +129,10 @@ Content-Type: application/json
 }
 ```
 
-#### `PUT /violations/:id/status`
+#### `PUT /api/v1/violations/:id/status`
 
 ```
-PUT /violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02/status
+PUT /api/v1/violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02/status
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
@@ -141,47 +143,49 @@ Returns `{ "data": { "status": "updated" } }`.
 
 ### Appeals
 
-#### `GET /appeals`
+#### `GET /api/v1/appeals`
 
 Supports `status`, `reason_code`, `violation_type`, `contractor_id`, `date_from`, `date_to`, `limit`, `offset`. Technical users automatically receive only `CAMERA_ERROR` records.
 
 ```
-GET /appeals?status=UNDER_REVIEW&reason_code=WRONG_ASSIGNMENT
+GET /api/v1/appeals?status=UNDER_REVIEW&reason_code=WRONG_ASSIGNMENT
 Authorization: Bearer <jwt>
 ```
 
 ```json
 {
-  "data": [
-    {
-      "appeal": {
-        "id": "8f61…",
-        "violation_id": "b2f0…",
-        "trip_id": "a7ac4d08-6c93-46bb-9f38-5b88b29be8a4",
-        "status": "UNDER_REVIEW",
-        "reason_code": "WRONG_ASSIGNMENT",
-        "reason_text": "Driver was reassigned at 05:30",
-        "created_at": "2025-01-12T07:00:00Z"
-      },
-      "violation": { "...": "..." },
-      "driver": { "id": "84df…", "full_name": "Aidos Nur" },
-      "attachments": [],
-      "comments": []
-    }
-  ]
+  "data": {
+    "items": [
+      {
+        "appeal": {
+          "id": "8f61…",
+          "violation_id": "b2f0…",
+          "trip_id": "a7ac4d08-6c93-46bb-9f38-5b88b29be8a4",
+          "status": "UNDER_REVIEW",
+          "reason_code": "WRONG_ASSIGNMENT",
+          "reason_text": "Driver was reassigned at 05:30",
+          "created_at": "2025-01-12T07:00:00Z"
+        },
+        "violation": { "...": "..." },
+        "driver": { "id": "84df…", "full_name": "Aidos Nur" },
+        "attachments": [],
+        "comments": []
+      }
+    ]
+  }
 }
 ```
 
-#### `GET /appeals/:id`
+#### `GET /api/v1/appeals/:id`
 
 Returns the complete appeal record with attachments/comments.
 
-#### `POST /violations/:id/appeals`
+#### `POST /api/v1/violations/:id/appeals`
 
 Driver/contractor entry point.
 
 ```
-POST /violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02/appeals
+POST /api/v1/violations/b2f0383c-5d7a-4d1c-8a5e-93a3d6cf0b02/appeals
 Authorization: Bearer <driver_jwt>
 Content-Type: application/json
 
@@ -194,12 +198,12 @@ Content-Type: application/json
 }
 ```
 
-#### `POST /appeals/:id/comments`
+#### `POST /api/v1/appeals/:id/comments`
 
 Anyone who can participate (driver/contractor, KGU, Akimat, TOO) can add comments and attachments.
 
 ```
-POST /appeals/8f611e7e-…/comments
+POST /api/v1/appeals/8f611e7e-…/comments
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
@@ -209,12 +213,12 @@ Content-Type: application/json
 }
 ```
 
-#### `POST /appeals/:id/actions`
+#### `POST /api/v1/appeals/:id/actions`
 
 Available to Akimat/KGU. Valid `action` values: `UNDER_REVIEW`, `NEED_INFO`, `APPROVE`, `REJECT`, `CLOSE`.
 
 ```
-POST /appeals/8f611e7e-…/actions
+POST /api/v1/appeals/8f611e7e-…/actions
 Authorization: Bearer <kgu_jwt>
 Content-Type: application/json
 
@@ -263,14 +267,14 @@ psql "postgres://postgres:postgres@localhost:5445/violations_db?sslmode=disable"
 To call the HTTP API issue a JWT (e.g. through `snowops-auth-service`) for the Akimat user `00000000-0000-0000-0000-000000000011` and run:
 
 ```bash
-curl -H "Authorization: Bearer <jwt>" http://localhost:7086/violations
+curl -H "Authorization: Bearer <jwt>" http://localhost:7086/api/v1/violations
 curl -X POST -H "Authorization: Bearer <jwt>" \
      -H "Content-Type: application/json" \
      -d '{"trip_id":"00000000-0000-0000-0000-000000000071","type":"FOREIGN_AREA","detected_by":"GPS","severity":"HIGH","description":"manual test"}' \
-     http://localhost:7086/violations
+     http://localhost:7086/api/v1/violations
 ```
 
-The first request lists the auto-created violation, the second creates a manual one (and instantly logs the status change). Contractor/driver tokens can exercise `/violations/:id/appeals`, `/appeals`, `/appeals/:id/comments`, while KGU/Akimat tokens go through `/appeals/:id/actions` to test the lifecycle.
+The first request lists the auto-created violation (response: `{ "data": { "items": [...] } }`), the second creates a manual one (and instantly logs the status change). Contractor/driver tokens can exercise `/api/v1/violations/:id/appeals`, `/api/v1/appeals`, `/api/v1/appeals/:id/comments`, while KGU/Akimat tokens go through `/api/v1/appeals/:id/actions` to test the lifecycle.
 
 ### Configuration
 
